@@ -4,8 +4,8 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "e6bf71110ed055309acbbc3780af6d5c",
-    "content-hash": "feb0b91bbcd8ca1a0e36bbf29621c521",
+    "hash": "b48f54758424e87596aadfab6f75e2b7",
+    "content-hash": "f4e9c8a278bb613b633b40bf1a78e12c",
     "packages": [
         {
             "name": "doctrine/annotations",
@@ -519,6 +519,60 @@
                 "caching"
             ],
             "time": "2015-11-27 04:59:07"
+        },
+        {
+            "name": "doctrine/doctrine-migrations-bundle",
+            "version": "v1.0.0-beta1",
+            "target-dir": "Doctrine/Bundle/DoctrineMigrationsBundle",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/doctrine/DoctrineMigrationsBundle.git",
+                "reference": "7a63bb570bc3304f8caa8b7421b010617db846c1"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/doctrine/DoctrineMigrationsBundle/zipball/7a63bb570bc3304f8caa8b7421b010617db846c1",
+                "reference": "7a63bb570bc3304f8caa8b7421b010617db846c1",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.3.2",
+                "symfony/symfony": ">=2.0"
+            },
+            "type": "symfony-bundle",
+            "autoload": {
+                "psr-0": {
+                    "Doctrine\\Bundle\\DoctrineMigrationsBundle": ""
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Fabien Potencier",
+                    "email": "fabien@symfony.com",
+                    "homepage": "http://fabien.potencier.org",
+                    "role": "Lead Developer"
+                },
+                {
+                    "name": "Symfony Community",
+                    "homepage": "http://symfony.com/contributors"
+                },
+                {
+                    "name": "Doctrine Project",
+                    "homepage": "http://www.doctrine-project.org"
+                }
+            ],
+            "description": "Symfony DoctrineMigrationsBundle",
+            "homepage": "http://www.doctrine-project.org",
+            "keywords": [
+                "dbal",
+                "migrations",
+                "schema"
+            ],
+            "time": "2011-12-17 11:05:02"
         },
         {
             "name": "doctrine/inflector",
@@ -2002,7 +2056,8 @@
     "aliases": [],
     "minimum-stability": "stable",
     "stability-flags": {
-        "friendsofsymfony/user-bundle": 20
+        "friendsofsymfony/user-bundle": 20,
+        "doctrine/doctrine-migrations-bundle": 20
     },
     "prefer-stable": false,
     "prefer-lowest": false,
