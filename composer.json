@@ -29,7 +29,8 @@
         "friendsofsymfony/user-bundle": "dev-symfony-3-support",
         "doctrine/migrations": "1.1.x-dev",
         "doctrine/doctrine-migrations-bundle": "~1.1.1",
-        "doctrine/doctrine-fixtures-bundle": "~2.3"
+        "doctrine/doctrine-fixtures-bundle": "~2.3",
+        "symfony/assetic-bundle": "^2.7"
     },
     "repositories": [
         {
