@@ -4,6 +4,7 @@ namespace AppBundle\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
+use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * StressLog
@@ -26,20 +27,30 @@ class StressLog
     /**
      * @var User
      *
+     * @Assert\NotBlank()
+     *
      * @ORM\ManyToOne(targetEntity="User")
-     * @ORM\JoinColumn(name="user_id", referencedColumnName="id")
+     * @ORM\JoinColumn(name="user_id", referencedColumnName="id") *
      */
     private $user;
 
     /**
      * @var \DateTime
      *
+     * @Assert\NotBlank()
+     * @Assert\Type("\DateTime")
+     *
      * @ORM\Column(name="time", type="datetime")
+     *
      */
     private $time;
 
     /**
      * @var int
+     *
+     * @Assert\NotBlank()
+     * @Assert\Type("digit")
+     * @Assert\Range(min=0, max=10)
      *
      * @ORM\Column(name="level", type="smallint")
      */
@@ -75,6 +86,21 @@ class StressLog
         $this->manifestations = new ArrayCollection();
     }
 
+    /**
+     * Factory method to create a new instance with useful defaults.
+     *
+     * @param User $user
+     * @return StressLog
+     */
+    public static function create(User $user)
+    {
+        $log = new static;
+        $log->setUser($user);
+        $log->setTime(new \DateTime);
+        $log->setLevel(5);
+
+        return $log;
+    }
 
     /**
      * @ORM\PrePersist
@@ -139,7 +165,7 @@ class StressLog
      */
     public function getLevel()
     {
-        return $this->level;
+        return (int) $this->level;
     }
 
     /**
@@ -261,6 +287,10 @@ class StressLog
      */
     public function addManifestationText($text)
     {
+        if (empty($text)) {
+            return false;
+        }
+
         if ($this->hasManifestationText($text)) {
             return false;
         }
@@ -361,6 +391,26 @@ class StressLog
     public function getUser()
     {
         return $this->user;
+    }
+
+    /**
+     * Get manifestation texts as a comma-separated string.
+     *
+     * @return string
+     */
+    public function getManifestationString()
+    {
+        return implode(', ', $this->getManifestationTexts());
+    }
+
+    /**
+     * Set manifestation texts as a comma-separated string.
+     *
+     * @param string $str
+     */
+    public function setManifestationString($str)
+    {
+        $this->setManifestationTexts(array_map('trim', explode(',', $str)));
     }
 
 }
