@@ -1,0 +1,138 @@
+{% extends 'base.html.twig' %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link href="{{ asset('css/nouislider.css') }}" rel="stylesheet" />
+    <link href="{{ asset('css/nouislider.pips.css') }}" rel="stylesheet" />
+    <link href="{{ asset('css/select2.min.css') }}" rel="stylesheet" />
+    <style type="text/css">
+        /* Prevent zoom on input in mobile Safari */
+        input[type='text'],
+        input[type='number'],
+        input[type='search'],
+        textarea,
+        textarea.form-control {
+            font-size: 16px;
+        }
+
+        /* Slider */
+        #slider { margin-bottom: 40px; }
+        #slider .noUi-marker-horizontal.noUi-marker-large {
+            height: 10px;
+        }
+        #slider .noUi-marker-horizontal.noUi-marker-sub {
+            height: 5px;
+            width: 1px;
+        }
+        #slider .noUi-value-horizontal {
+            padding-top: 10px;
+        }
+
+
+        #form-group-factors .select2-container .select2-search--inline .select2-search__field {
+            font-size: 16px;
+        }
+
+    </style>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+
+    <script src="{{ asset('js/nouislider.js') }}"></script>
+    <script src="{{ asset('js/select2.full.min.js') }}"></script>
+    <script type="text/javascript">
+        $(function() {
+            // Slider
+            var slider = document.getElementById('slider');
+            noUiSlider.create(slider, {
+                start: {{ form.vars.value.level }},
+                step: 1,
+                range: {
+                    min: 0,
+                    max: 10
+                },
+                pips: { // Show a scale with the slider
+                    mode: 'steps',
+                    density: 10
+                }
+            });
+            slider.noUiSlider.on('set', function() {
+                document.getElementById('stress_log_form_level').value = parseInt(slider.noUiSlider.get());
+            });
+
+            // Factor tags
+            $('.tag-selector').select2({
+                tags: true,
+                data: [
+                    // { id: "optgroup1", text: "Suggestions", children: [
+                        { id: "kids", text: "kids" },
+                        { id: "tension: neck and shoulders", text: "tension: neck and shoulders" },
+                        { id: "multitasking", text: "multitasking" },
+                    // ]},
+                    // { id: "optgroup2", text: "All", children: [
+                        { id: "butterflies", text: "butterflies"},
+                        { id: "cannabis", text: "cannabis"},
+                        { id: "family", text: "family"},
+                        { id: "job", text: "job"},
+                        // { id: "kids", text: "kids" },
+                        // { id: "multitasking", text: "multitasking" },
+                        { id: "sick", text: "sick" },
+                        // { id: "tension: neck and shoulders", text: "tension: neck and shoulders" },
+                        { id: "tension: stomach", text: "tension: stomach" }
+                    // ]}
+                ],
+                multiple: true,
+                closeOnSelect: false
+            });
+
+        });
+    </script>
+{% endblock %}
+
+{% block body %}
+    <div class="page-header">
+        <h1>
+            {% block title %}Edit log entry{% endblock %}
+        </h1>
+    </div>
+
+    {{ form_start(form) }}
+
+        {{ form_errors(form) }}
+
+        <div class="form-group">
+            {{ form_label(form.level) }}
+            {{ form_errors(form.level) }}
+            {{ form_widget(form.level) }}
+            <div id="slider"></div>
+        </div>
+
+        <div class="form-group" id="form-group-factors">
+            {{ form_label(form.manifestationString) }}
+            {{ form_errors(form.manifestationString) }}
+            {{ form_widget(form.manifestationString, {'attr': {'class': 'tag-selector'}}) }}
+        </div>
+
+        <div class="form-group">
+            {{ form_label(form.notes) }}
+            {{ form_errors(form.notes) }}
+            {{ form_widget(form.notes) }}
+        </div>
+
+        <div class="form-group">
+            {{ form_label(form.time) }}
+            {{ form_errors(form.time) }}
+            {{ form_widget(form.time) }}
+        </div>
+
+        <div>
+            {{ form_widget(form.save) }}
+        </div>
+
+        {# {{ form_rest(form) }} #}
+
+    {{ form_end(form) }}
+{% endblock %}
+
+

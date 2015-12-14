@@ -1,0 +1,21 @@
+{% extends "::base.html.twig" %}
+
+{% block title %}AppBundle:StressLog:show{% endblock %}
+
+{% block body %}
+    <h1>Stress log: {{ log.time|date("D, d M Y H:i:s") }}</h1>
+
+    <div>
+        Level:
+        {{ log.level }}
+    </div>
+
+    <div>
+        Notes:
+        {{ log.notes }}
+    </div>
+
+    <a href="{{ path('editLog', {'id': log.id}) }}">
+        Edit
+    </a>
+{% endblock %}
