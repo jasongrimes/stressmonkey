@@ -63,7 +63,11 @@
 
             // Factor tags
             $('.tag-selector').select2({
-                tags: true,
+                tags: true
+                , closeOnSelect: false
+                , tokenSeparators: [',']
+                /*
+                ,
                 data: [
                     // { id: "optgroup1", text: "Suggestions", children: [
                         { id: "kids", text: "kids" },
@@ -83,7 +87,7 @@
                     // ]}
                 ],
                 multiple: true,
-                closeOnSelect: false
+                */
             });
 
         });
@@ -109,9 +113,9 @@
         </div>
 
         <div class="form-group" id="form-group-factors">
-            {{ form_label(form.manifestationString) }}
-            {{ form_errors(form.manifestationString) }}
-            {{ form_widget(form.manifestationString, {'attr': {'class': 'tag-selector'}}) }}
+            {{ form_label(form.manifestationTexts) }}
+            {{ form_errors(form.manifestationTexts) }}
+            {{ form_widget(form.manifestationTexts, {'attr': {'class': 'tag-selector'}}) }}
         </div>
 
         <div class="form-group">

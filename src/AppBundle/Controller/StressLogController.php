@@ -45,8 +45,6 @@ class StressLogController extends Controller
         $form = $this->createForm(StressLogForm::class, $log);
         $form->handleRequest($request);
 
-        echo $log->getManifestationString();
-
         if ($form->isValid()) {
             $em = $this->getDoctrine()->getManager();
             $em->flush();
