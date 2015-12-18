@@ -117,6 +117,25 @@
 
         {{ form_errors(form) }}
 
+        <div class="form-group compact-time">
+            {{ form_errors(form.notes) }}
+            <!--label class="control-label" for="stress_log_form_time_date">
+                Time:-->
+                    <span style="font-weight: normal;">
+                        {{ form.vars.value.time|date }}
+                        UTC
+                        <a title="Change time" class="small" style="margin-left: 5px;" role="button" data-toggle="collapse" href="#collapseTime" aria-expanded="false" aria-controls="collapseTime">
+                            <span class="glyphicon glyphicon-pencil"></span>
+                        </a>
+                    </span>
+                <div class="collapse" id="collapseTime">
+                    <div class="well">
+                        {{ form_widget(form.time) }}
+                    </div>
+                </div>
+            <!--/label-->
+        </div>
+
         <div class="form-group">
             {{ form_label(form.level) }}
             {{ form_errors(form.level) }}
@@ -137,25 +156,10 @@
         </div>
 
 
-        <div class="form-group compact-time">
-            {{ form_errors(form.notes) }}
-            <label class="control-label" for="stress_log_form_time_date">
-                Time:
-                <a role="button" data-toggle="collapse" href="#collapseTime" aria-expanded="false" aria-controls="collapseTime">
-                    {{ form.vars.value.time|date }}
-                </a>
-                <div class="collapse" id="collapseTime">
-                    <div class="well">
-                        {{ form_widget(form.time) }}
-                    </div>
-                </div>
-            </label>
-        </div>
-
         <div>
             {% if log is defined %}
                 <button type="submit" class="btn btn-default">Save entry</button>
-                <a style="margin-left: 10px;" href="{{ path('showLog', {'id': log.id}) }}">Cancel</a>
+                <a class="btn btn-link" href="{{ path('showLog', {'id': log.id}) }}">Cancel</a>
             {% else %}
                 <button type="submit" class="btn btn-default">Add entry</button>
             {% endif %}
