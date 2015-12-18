@@ -154,10 +154,10 @@
 
         <div>
             {% if log is defined %}
-                <button type="submit" class="btn btn-primary">Save entry</button>
+                <button type="submit" class="btn btn-default">Save entry</button>
                 <a style="margin-left: 10px;" href="{{ path('showLog', {'id': log.id}) }}">Cancel</a>
             {% else %}
-                <button type="submit" class="btn btn-primary">Add entry</button>
+                <button type="submit" class="btn btn-default">Add entry</button>
             {% endif %}
         </div>
 
