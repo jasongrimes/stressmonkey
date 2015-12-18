@@ -10,6 +10,8 @@
         input[type='text'],
         input[type='number'],
         input[type='search'],
+        input[type='date'],
+        select.form-control,
         textarea,
         textarea.form-control {
             font-size: 16px;
@@ -27,10 +29,19 @@
         #slider .noUi-value-horizontal {
             padding-top: 10px;
         }
-
+        #slider.noUi-connect { background: #EB9D9E; }
 
         #form-group-factors .select2-container .select2-search--inline .select2-search__field {
             font-size: 16px;
+        }
+
+        .compact-time .form-inline .form-control {
+            display: inline-block;
+            width: auto;
+            vertical-align: middle;
+        }
+        .compact-time input[type=date] {
+            margin-right: 2px;
         }
 
     </style>
@@ -48,6 +59,7 @@
             noUiSlider.create(slider, {
                 start: {{ form.vars.value.level }},
                 step: 1,
+                connect: 'lower',
                 range: {
                     min: 0,
                     max: 10
@@ -124,17 +136,30 @@
             {{ form_widget(form.notes) }}
         </div>
 
-        <div class="form-group">
-            {{ form_label(form.time) }}
-            {{ form_errors(form.time) }}
-            {{ form_widget(form.time) }}
+
+        <div class="form-group compact-time">
+            {{ form_errors(form.notes) }}
+            <label class="control-label" for="stress_log_form_time_date">
+                Time:
+                <a role="button" data-toggle="collapse" href="#collapseTime" aria-expanded="false" aria-controls="collapseTime">
+                    {{ form.vars.value.time|date }}
+                </a>
+                <div class="collapse" id="collapseTime">
+                    <div class="well">
+                        {{ form_widget(form.time) }}
+                    </div>
+                </div>
+            </label>
         </div>
 
         <div>
-            {{ form_widget(form.save) }}
+            {% if log is defined %}
+                <button type="submit" class="btn btn-primary">Save entry</button>
+                <a style="margin-left: 10px;" href="{{ path('showLog', {'id': log.id}) }}">Cancel</a>
+            {% else %}
+                <button type="submit" class="btn btn-primary">Add entry</button>
+            {% endif %}
         </div>
-
-        {# {{ form_rest(form) }} #}
 
     {{ form_end(form) }}
 {% endblock %}

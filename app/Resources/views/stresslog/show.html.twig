@@ -3,11 +3,21 @@
 {% block title %}AppBundle:StressLog:show{% endblock %}
 
 {% block body %}
-    <h1>Stress log: {{ log.time|date("D, d M Y H:i:s") }}</h1>
+    <h1>Stress log entry</h1>
+
+    <div>
+        Time:
+        {{ log.time|date }}
+    </div>
 
     <div>
         Level:
         {{ log.level }}
+    </div>
+
+    <div>
+        Factors:
+        {{ log.manifestationString }}
     </div>
 
     <div>

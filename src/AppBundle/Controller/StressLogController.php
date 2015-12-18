@@ -53,6 +53,7 @@ class StressLogController extends Controller
         }
 
         return $this->render('stresslog/edit.html.twig', array(
+            'log' => $log,
             'form' => $form->createView(),
         ));
     }
