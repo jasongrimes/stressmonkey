@@ -35,6 +35,12 @@
             font-size: 16px;
         }
 
+        li.select2-results__option[role=group] {
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            margin: 5px;
+        }
+
         .compact-time .form-inline .form-control {
             display: inline-block;
             width: auto;
@@ -53,6 +59,63 @@
     <script src="{{ asset('js/nouislider.js') }}"></script>
     <script src="{{ asset('js/select2.full.min.js') }}"></script>
     <script type="text/javascript">
+        function uniq(a) { // From http://stackoverflow.com/a/9229821
+            var seen = {};
+            return a.filter(function(item) {
+                return seen.hasOwnProperty(item) ? false : (seen[item] = true);
+            });
+        }
+        var suggestionsShown = null;
+        function updateSuggestions() {
+            var level = $('#stress_log_form_level').val();
+            if (level < 5 && suggestionsShown != 'low') {
+                setSuggestions({{ suggestedFactors.low|json_encode()|raw }})
+                suggestionsShown = 'low';
+            } else if (suggestionsShown != 'high') {
+                setSuggestions({{ suggestedFactors.high|json_encode()|raw }})
+                suggestionsShown = 'high';
+            }
+        }
+
+        function setSuggestions(suggestions) {
+            var $select = $('.tag-selector'),
+                $suggestionsGroup = $select.find('optgroup[label="Suggestions"]');
+
+            // Move existing suggestions to the main option list.
+            $suggestionsGroup.children('option').each(function(i, option) {
+                $option = $(option);
+                $option.detach();
+                $select.append($option);
+            });
+
+            // Remove and recreate the suggestions optgroup,
+            // so select2 recognizes that its options have changed.
+            $suggestionsGroup.remove();
+            $suggestionsGroup = $('<optgroup label="Suggestions"></optgroup>');
+            // $select.prepend($suggestionsGroup).trigger('change');
+
+            // Detach each suggestion from its existing location and add to the suggestions optgroup.
+            $.each(suggestions, function(i, text) {
+                var $option = $select.find('option[value="'+text+'"]');
+                if ($option.length > 0) {
+                    $option.detach();
+                } else {
+                    $option = $('<option value="'+text+'">'+text+'</option>');
+                }
+                $suggestionsGroup.append($option);
+            });
+
+            // Sort the other options.
+            var selected = $select.val();
+            var sortedOps = $select.find('option');
+            sortedOps.sort(function(a,b) { return $(a).text().localeCompare($(b).text()) });
+            $select.empty().append(sortedOps);
+            $select.val(selected);
+
+            // Reattach the suggestions group.
+            $select.prepend($suggestionsGroup).trigger('change');
+        }
+
         $(function() {
             // Slider
             var slider = document.getElementById('slider');
@@ -71,36 +134,56 @@
             });
             slider.noUiSlider.on('set', function() {
                 document.getElementById('stress_log_form_level').value = parseInt(slider.noUiSlider.get());
+                updateSuggestions();
             });
 
             // Factor tags
-            $('.tag-selector').select2({
+            var $tagSelector = $('.tag-selector');
+            $tagSelector.select2({
                 tags: true
                 , closeOnSelect: false
                 , tokenSeparators: [',']
-                /*
-                ,
-                data: [
-                    // { id: "optgroup1", text: "Suggestions", children: [
-                        { id: "kids", text: "kids" },
-                        { id: "tension: neck and shoulders", text: "tension: neck and shoulders" },
-                        { id: "multitasking", text: "multitasking" },
-                    // ]},
-                    // { id: "optgroup2", text: "All", children: [
-                        { id: "butterflies", text: "butterflies"},
-                        { id: "cannabis", text: "cannabis"},
-                        { id: "family", text: "family"},
-                        { id: "job", text: "job"},
-                        // { id: "kids", text: "kids" },
-                        // { id: "multitasking", text: "multitasking" },
-                        { id: "sick", text: "sick" },
-                        // { id: "tension: neck and shoulders", text: "tension: neck and shoulders" },
-                        { id: "tension: stomach", text: "tension: stomach" }
-                    // ]}
-                ],
-                multiple: true,
-                */
+            })
+            .on('select2:open',function(){ $('.select2-dropdown--above').attr('id','fix');
+                $('#fix').removeClass('select2-dropdown--above');
+                $('#fix').addClass('select2-dropdown--below');
+
             });
+            // Workaround for bug where the search term isn't cleared after hitting enter.
+            $tagSelector.on('select2:select', function(e) {
+                $('.select2-search__field').val('');
+                if ($('.select2-results__option--highlighted').length) {
+                    $(this).select2('close');
+                    $(this).select2('open');
+                }
+            });
+
+            updateSuggestions();
+
+            /*
+            // Debugging...
+            var $eventSelect = $("#testselect");
+
+            $eventSelect.on("select2:open", function (e) { log("select2:open", e); });
+            $eventSelect.on("select2:close", function (e) { log("select2:close", e); });
+            $eventSelect.on("select2:select", function (e) { log("select2:select", e); });
+            $eventSelect.on("select2:unselect", function (e) { log("select2:unselect", e); });
+
+            $eventSelect.on("change", function (e) { log("change"); });
+
+            function log (name, evt) {
+                if (!evt) {
+                    var args = "{}";
+                } else {
+                    var args = JSON.stringify(evt.params, function (key, value) {
+                        if (value && value.nodeName) return "[DOM node]";
+                        if (value instanceof $.Event) return "[$.Event]";
+                        return value;
+                    });
+                }
+                console.log(name, args);
+            }
+            */
 
         });
     </script>
@@ -149,19 +232,29 @@
             {{ form_widget(form.manifestationTexts, {'attr': {'class': 'tag-selector'}}) }}
         </div>
 
+        {#
+        <div class="form-group">
+            <select id="testselect" class="tag-selector form-control" multiple>
+                <option value=" three">three</option>
+                <option value="one">one</option>
+                <option value="two">two</option>
+                <option value="three">three</option>
+            </select>
+        </div>
+        #}
+
         <div class="form-group">
             {{ form_label(form.notes) }}
             {{ form_errors(form.notes) }}
             {{ form_widget(form.notes) }}
         </div>
 
-
         <div>
             {% if log is defined %}
-                <button type="submit" class="btn btn-default">Save entry</button>
+                <button id="submit" type="submit" class="btn btn-default">Save entry</button>
                 <a class="btn btn-link" href="{{ path('showLog', {'id': log.id}) }}">Cancel</a>
             {% else %}
-                <button type="submit" class="btn btn-default">Add entry</button>
+                <button id="submit" type="submit" class="btn btn-default">Add entry</button>
             {% endif %}
         </div>
 

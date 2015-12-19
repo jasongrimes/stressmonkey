@@ -18,3 +18,9 @@ swiftmailer:
 doctrine:
     dbal:
         dbname:   "%database_name%_test"
+
+security:
+    firewalls:
+        main:
+            # Allow HTTP basic authentication in functional tests
+            http_basic: ~

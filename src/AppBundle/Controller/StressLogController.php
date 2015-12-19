@@ -3,6 +3,7 @@
 namespace AppBundle\Controller;
 
 use AppBundle\Form\StressLogForm;
+use AppBundle\Util\TagManager;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Security;
@@ -31,8 +32,12 @@ class StressLogController extends Controller
             return $this->redirectToRoute('showLog', array('id' => $log->getId()));
         }
 
+        /** @var TagManager $tagManager */
+        $tagManager = $this->get('app.tag_manager');
+
         return $this->render('stresslog/new.html.twig', array(
             'form' => $form->createView(),
+            'suggestedFactors' => $tagManager->getSuggestions($this->getUser()),
         ));
     }
 
@@ -52,9 +57,13 @@ class StressLogController extends Controller
             return $this->redirectToRoute('showLog', array('id' => $log->getId()));
         }
 
+        /** @var TagManager $tagManager */
+        $tagManager = $this->get('app.tag_manager');
+
         return $this->render('stresslog/edit.html.twig', array(
             'log' => $log,
             'form' => $form->createView(),
+            'suggestedFactors' => $tagManager->getSuggestions($this->getUser()),
         ));
     }
 

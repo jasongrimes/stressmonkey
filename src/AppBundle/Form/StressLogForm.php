@@ -2,6 +2,7 @@
 
 namespace AppBundle\Form;
 
+use AppBundle\Util\TagManager;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
@@ -13,20 +14,36 @@ use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\FormEvents;
 use Symfony\Component\Form\FormEvent;
 use Symfony\Component\Form\FormInterface;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 
 class StressLogForm extends AbstractType
 {
+    /** @var TagManager */
+    protected $tagManager;
+
+    /** @var TokenStorageInterface */
+    protected $tokenStorage;
+
+    public function __construct(TokenStorageInterface $tokenStorage, TagManager $tagManager)
+    {
+        $this->tagManager = $tagManager;
+        $this->tokenStorage = $tokenStorage;
+    }
+
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
+        $user = $this->tokenStorage->getToken()->getUser();
+        if (!$user) {
+            throw new \LogicException(__CLASS__ . ' cannot be used without an authenticated user!');
+        }
+
+        $tags = $this->tagManager->getTextsByUser($user);
+        $tag_ops = array_combine($tags, $tags);
+
         $builder
             ->add('level', HiddenType::class, array('label' => 'Stress level'))
             ->add('manifestationTexts', ChoiceType::class, array(
-                'choices' => array(
-                    'sick' => 'sick',
-                    'tired' => 'tired',
-                    'tension: neck/shoulders' => 'tension: neck/shoulders',
-                    'butterflies' => 'butterflies',
-                ),
+                'choices' => $tag_ops, // array('Other factors used previously' => $tag_ops),
                 'required' => false,
                 'label' => 'Factors',
                 'multiple' => true,

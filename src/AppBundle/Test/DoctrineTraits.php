@@ -46,15 +46,17 @@ trait DoctrineTraits
     protected function tearDownDoctrine()
     {
         $this->doctrine = null;
-        $this->em->close();
-        $this->em = null;
+        if ($this->em) {
+            $this->em->close();
+            $this->em = null;
+        }
         $this->loader = null;
         $this->container = null;
     }
 
     protected function loadFixtures($truncate = true)
     {
-        $purger = new ORMPurger();
+        $purger = new ORMPurger($this->em);
         $executor = new ORMExecutor($this->em, $purger);
         $executor->execute($this->loader->getFixtures(), !$truncate);
     }

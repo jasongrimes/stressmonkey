@@ -7,3 +7,12 @@ services:
 #    service_name:
 #        class: AppBundle\Directory\ClassName
 #        arguments: ["@another_service_name", "plain_value", "%parameter_name%"]
+    app.tag_manager:
+        class: AppBundle\Util\TagManager
+        arguments: ["@doctrine.orm.entity_manager"]
+
+    app.form.stress_log:
+        class: AppBundle\Form\StressLogForm
+        arguments: ['@security.token_storage', '@app.tag_manager']
+        tags:
+            - { name: form.type }
