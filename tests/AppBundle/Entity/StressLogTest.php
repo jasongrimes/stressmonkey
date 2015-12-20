@@ -21,56 +21,56 @@ class StressLogTest extends \PHPUnit_Framework_TestCase
         $this->user->setPassword('test');
 
         $this->log = new StressLog();
-        $this->log->setTime(new \DateTime());
+        $this->log->setLocaltime(new \DateTime());
         $this->log->setLevel(6);
         $this->log->setUser($this->user);
     }
 
-    public function testSettingManifestations()
+    public function testSettingFactors()
     {
-        $this->log->setManifestationTexts(array());
-        $this->assertEmpty($this->log->getManifestations());
+        $this->log->setFactorTexts(array());
+        $this->assertEmpty($this->log->getFactors());
 
-        $this->log->setManifestationTexts(array('one', 'two'));
-        $this->assertCount(2, $this->log->getManifestationTexts());
-        $this->assertContains('one', $this->log->getManifestationTexts());
-        $this->assertContains('two', $this->log->getManifestationTexts());
+        $this->log->setFactorTexts(array('one', 'two'));
+        $this->assertCount(2, $this->log->getFactorTexts());
+        $this->assertContains('one', $this->log->getFactorTexts());
+        $this->assertContains('two', $this->log->getFactorTexts());
 
-        $this->log->setManifestationTexts(array('three'));
-        $this->assertCount(1, $this->log->getManifestationTexts());
-        $this->assertContains('three', $this->log->getManifestationTexts());
+        $this->log->setFactorTexts(array('three'));
+        $this->assertCount(1, $this->log->getFactorTexts());
+        $this->assertContains('three', $this->log->getFactorTexts());
     }
 
-    public function testAddManifestationIgnoresDuplicates()
+    public function testAddFactorIgnoresDuplicates()
     {
-        $this->log->setManifestationTexts(array('one'));
-        $manifestation = $this->log->getManifestations()->first();
+        $this->log->setFactorTexts(array('one'));
+        $factor = $this->log->getFactors()->first();
 
-        $result = $this->log->addManifestationText('one');
+        $result = $this->log->addFactorText('one');
         $this->assertFalse($result);
-        $this->assertCount(1, $this->log->getManifestations());
-        $this->assertSame($manifestation, $this->log->getManifestations()->first());
+        $this->assertCount(1, $this->log->getFactors());
+        $this->assertSame($factor, $this->log->getFactors()->first());
     }
 
-    public function testSetManifestationsIgnoresDuplicates()
+    public function testSetFactorsIgnoresDuplicates()
     {
-        $this->log->setManifestationTexts(array('one'));
-        $manifestation_before = $this->log->getManifestations()->first();
+        $this->log->setFactorTexts(array('one'));
+        $factor_before = $this->log->getFactors()->first();
 
-        $this->log->setManifestationTexts(array('one', 'two'));
-        $this->assertCount(2, $this->log->getManifestations());
+        $this->log->setFactorTexts(array('one', 'two'));
+        $this->assertCount(2, $this->log->getFactors());
 
-        $manifestation_after = null;
-        foreach ($this->log->getManifestations() as $mani) {
-            if ($mani->getText() == 'one') {
-                $manifestation_after = $mani;
+        $factor_after = null;
+        foreach ($this->log->getFactors() as $factor) {
+            if ($factor->getText() == 'one') {
+                $factor_after = $factor;
                 break;
             }
         }
 
-        // The original manifestation object is preserved,
+        // The original factor object is preserved,
         // instead of being overwritten by a new one with the same value.
-        $this->assertSame($manifestation_before, $manifestation_after);
+        $this->assertSame($factor_before, $factor_after);
     }
 
 }

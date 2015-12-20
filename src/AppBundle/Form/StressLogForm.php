@@ -43,14 +43,14 @@ class StressLogForm extends AbstractType
 
         $builder
             ->add('level', HiddenType::class, array('label' => 'Stress level'))
-            ->add('manifestationTexts', ChoiceType::class, array(
+            ->add('factorTexts', ChoiceType::class, array(
                 'choices' => $tag_ops, // array('Other factors used previously' => $tag_ops),
                 'required' => false,
                 'label' => 'Factors',
                 'multiple' => true,
             ))
             ->add('notes', TextAreaType::class, array('required' => false))
-            ->add('localtime', DateTimeType::class, array('date_widget' => 'single_text'))
+            ->add('localtime', DateTimeType::class, array('date_widget' => 'single_text', 'label' => 'Local time'))
             ->add('timezone', TimezoneType::class)
         ;
 
@@ -59,7 +59,7 @@ class StressLogForm extends AbstractType
         // used by event handlers below.
         $addTagsToForm = function(FormInterface $form, array $texts) {
             // Get the existing field & info
-            $field = $form->get('manifestationTexts');
+            $field = $form->get('factorTexts');
             $type = $field->getConfig()->getType()->getInnerType();
             $options = $field->getConfig()->getOptions();
             // Update the options
@@ -67,7 +67,7 @@ class StressLogForm extends AbstractType
                 $options['choices'][$text] = $text;
             }
             // Replace the field.
-            $form->add('manifestationTexts', get_class($type), $options);
+            $form->add('factorTexts', get_class($type), $options);
         };
 
         // Called before form data is populated.
@@ -77,7 +77,7 @@ class StressLogForm extends AbstractType
                 $form = $event->getForm();
                 // Make sure all the *assigned* tags are included in the select list
                 // (even if they haven't been persisted to the database yet).
-                $addTagsToForm($form, $log->getManifestationTexts());
+                $addTagsToForm($form, $log->getFactorTexts());
             }
         );
 
@@ -87,8 +87,8 @@ class StressLogForm extends AbstractType
                 $data = $event->getData();
                 // Make sure all *submitted* tags are included in the select list,
                 // ex. for re-rendering form on error.
-                if (array_key_exists('manifestationTexts', $data)) {
-                    $addTagsToForm($event->getForm(), $data['manifestationTexts']);
+                if (array_key_exists('factorTexts', $data)) {
+                    $addTagsToForm($event->getForm(), $data['factorTexts']);
                 }
             }
         );

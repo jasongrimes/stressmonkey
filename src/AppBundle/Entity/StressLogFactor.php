@@ -5,12 +5,10 @@ namespace AppBundle\Entity;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
- * StressManifestation
- *
- * @ORM\Table(name="stress_manifestation")
- * @ORM\Entity(repositoryClass="AppBundle\Repository\StressManifestationRepository")
+ * @ORM\Table(name="stress_log_factors")
+ * @ORM\Entity(repositoryClass="AppBundle\Repository\StressLogFactorRepository")
  */
-class StressManifestation
+class StressLogFactor
 {
     /**
      * @var int
@@ -29,7 +27,7 @@ class StressManifestation
     private $text;
 
     /**
-     * @ORM\ManyToOne(targetEntity="StressLog", inversedBy="manifestations")
+     * @ORM\ManyToOne(targetEntity="StressLog", inversedBy="factors")
      * @ORM\JoinColumn(name="stress_log_id", referencedColumnName="id", nullable=false)
      */
     private $stressLog;
@@ -49,7 +47,7 @@ class StressManifestation
      *
      * @param string $text
      *
-     * @return StressManifestation
+     * @return StressLogFactor
      */
     public function setText($text)
     {
@@ -73,7 +71,7 @@ class StressManifestation
      *
      * @param \AppBundle\Entity\StressLog $stressLog
      *
-     * @return StressManifestation
+     * @return StressLogFactor
      */
     public function setStressLog(\AppBundle\Entity\StressLog $stressLog = null)
     {

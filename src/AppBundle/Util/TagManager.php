@@ -50,8 +50,8 @@ class TagManager
     {
         $result = $this->conn->fetchAll('
             SELECT DISTINCT text
-            FROM stress_manifestation
-            JOIN stress_log ON stress_log_id = stress_log.id
+            FROM stress_log_factors
+            JOIN stress_logs ON stress_log_id = stress_logs.id
             WHERE user_id = ?
             ORDER BY text ASC
         ', array($user->getId()));
@@ -98,9 +98,9 @@ class TagManager
     protected function getRecentFrequent(User $user, array $criteria = null, $limit = 10)
     {
         $sql = '
-            SELECT text, MAX(time) AS recency, COUNT(*) AS frequency
-            FROM stress_manifestation
-            JOIN stress_log ON stress_log_id = stress_log.id
+            SELECT text, MAX(createdAt) AS recency, COUNT(*) AS frequency
+            FROM stress_log_factors
+            JOIN stress_logs ON stress_log_id = stress_logs.id
             WHERE user_id = ?
         ';
         $params = array($user->getId());

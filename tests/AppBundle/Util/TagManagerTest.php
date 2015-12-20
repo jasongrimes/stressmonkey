@@ -59,9 +59,9 @@ class TagManagerTest extends KernelTestCase
         }
 
         $log = StressLog::create($this->user);
-        $log->setManifestationTexts($texts);
+        $log->setFactorTexts($texts);
         $log->setLevel($level);
-        $log->setTime($time);
+        $log->setCreatedAt($time);
 
         return $log;
     }

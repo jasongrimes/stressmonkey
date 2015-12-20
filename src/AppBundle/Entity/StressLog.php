@@ -9,7 +9,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 /**
  * StressLog
  *
- * @ORM\Table(name="stress_log")
+ * @ORM\Table(name="stress_logs")
  * @ORM\Entity(repositoryClass="AppBundle\Repository\StressLogRepository")
  * @ORM\HasLifecycleCallbacks()
  */
@@ -33,15 +33,6 @@ class StressLog
      * @ORM\JoinColumn(name="user_id", referencedColumnName="id") *
      */
     private $user;
-
-    /**
-     * @deprecated Use $localtime and $timezone instead.
-     *
-     * @var \DateTime
-     *
-     * @ORM\Column(name="time", type="datetime")
-     */
-    private $time;
 
     /**
      * @var \DateTime
@@ -88,19 +79,13 @@ class StressLog
     private $createdAt;
 
     /**
-     * @ORM\OneToMany(targetEntity="StressSource", mappedBy="stressLog", fetch="EAGER", cascade={"all"}, orphanRemoval=true)
+     * @ORM\OneToMany(targetEntity="StressLogFactor", mappedBy="stressLog", fetch="EAGER", cascade={"persist", "remove"}, orphanRemoval=true)
      */
-    private $sources;
-
-    /**
-     * @ORM\OneToMany(targetEntity="StressManifestation", mappedBy="stressLog", fetch="EAGER", cascade={"persist", "remove"}, orphanRemoval=true)
-     */
-    private $manifestations;
+    private $factors;
 
     public function __construct()
     {
-        $this->sources = new ArrayCollection();
-        $this->manifestations = new ArrayCollection();
+        $this->factors = new ArrayCollection();
     }
 
     /**
@@ -117,9 +102,6 @@ class StressLog
         $log->setLocaltime(new \DateTime(null, new \DateTimeZone($log->getTimezone())));
         $log->setLevel(5);
 
-        // Deprecated...
-        $log->setTime(new \DateTime);
-
         return $log;
     }
 
@@ -128,7 +110,9 @@ class StressLog
      */
     public function setCreatedAtValue()
     {
-        $this->createdAt = new \DateTime();
+        if ($this->createdAt === null) {
+            $this->createdAt = new \DateTime();
+        }
     }
 
     /**
@@ -142,28 +126,29 @@ class StressLog
     }
 
     /**
-     * Set time
+     * Set user
      *
-     * @param \DateTime $time
+     * @param \AppBundle\Entity\User $user
      *
      * @return StressLog
      */
-    public function setTime($time)
+    public function setUser(\AppBundle\Entity\User $user = null)
     {
-        $this->time = $time;
+        $this->user = $user;
 
         return $this;
     }
 
     /**
-     * Get time
+     * Get user
      *
-     * @return \DateTime
+     * @return \AppBundle\Entity\User
      */
-    public function getTime()
+    public function getUser()
     {
-        return $this->time;
+        return $this->user;
     }
+
 
     /**
      * Set level
@@ -220,7 +205,7 @@ class StressLog
      *
      * @return StressLog
      */
-    public function setCreatedAt($createdAt)
+    public function setCreatedAt(\DateTime $createdAt)
     {
         $this->createdAt = $createdAt;
 
@@ -238,53 +223,18 @@ class StressLog
     }
 
     /**
-     * Add source
-     *
-     * @param \AppBundle\Entity\StressSource $source
-     *
-     * @return StressLog
-     */
-    public function addSource(\AppBundle\Entity\StressSource $source)
-    {
-        $this->sources->add($source);
-
-        return $this;
-    }
-
-    /**
-     * Remove source
-     *
-     * @param \AppBundle\Entity\StressSource $source
-     */
-    public function removeSource(\AppBundle\Entity\StressSource $source)
-    {
-        $this->sources->removeElement($source);
-        $source->setStressLog(null);
-    }
-
-    /**
-     * Get sources
-     *
-     * @return \Doctrine\Common\Collections\Collection
-     */
-    public function getSources()
-    {
-        return $this->sources;
-    }
-
-    /**
-     * Update manifestations to match the given list of texts.
+     * Update factors to match the given list of texts.
      *
      * @param array $texts
      */
-    public function setManifestationTexts(array $texts)
+    public function setFactorTexts(array $texts)
     {
         // Remove tags that are no longer wanted.
-        foreach ($this->manifestations as $i => $tag) { /** @var StressManifestation $tag */
+        foreach ($this->factors as $i => $tag) { /** @var StressLogFactor $tag */
             // Note that orphanRemoval=true in the annotation mapping tells Doctrine
             // to automatically remove these entities on flush().
             if (!in_array($tag->getText(), $texts)) {
-                $this->manifestations->remove($i);
+                $this->factors->remove($i);
                 $tag->setStressLog(null);
             }
         }
@@ -292,48 +242,48 @@ class StressLog
         // Add any new tags.
         foreach ($texts as $text) {
             // This check is not really necessary here, but it makes the code clearer.
-            if ($this->hasManifestationText($text)) {
+            if ($this->hasFactorText($text)) {
                 continue;
             }
 
-            $this->addManifestationText($text);
+            $this->addFactorText($text);
         }
     }
 
     /**
-     * Add a new manifestation for the given text, if one does not already exist.
+     * Add a new factor for the given text, if one does not already exist.
      *
      * @param string $text
-     * @return bool True if manifestation was added, false if it already existed.
+     * @return bool True if factor was added, false if it already existed.
      */
-    public function addManifestationText($text)
+    public function addFactorText($text)
     {
         if (empty($text)) {
             return false;
         }
 
-        if ($this->hasManifestationText($text)) {
+        if ($this->hasFactorText($text)) {
             return false;
         }
 
         // Note that cascade={"persist"} in the annotation mapping tells Doctrine
         // to automatically persist these new entities on flush().
-        $tag = new StressManifestation();
-        $tag->setText($text);
-        $this->addManifestation($tag);
+        $tag = new StressLogFactor();
+        $tag->setText(trim($text));
+        $this->addFactor($tag);
 
         return true;
     }
 
     /**
-     * Test whether the log has a manifestation with the given text.
+     * Test whether the log has a factor with the given text.
      *
      * @param string $text
      * @return bool
      */
-    public function hasManifestationText($text)
+    public function hasFactorText($text)
     {
-        return $this->manifestations->exists(
+        return $this->factors->exists(
             function($k, $v) use ($text) {
                 return $v->getText() == $text;
             }
@@ -341,13 +291,15 @@ class StressLog
     }
 
     /**
-     * Get an array of manifestation texts.
+     * Get an array of factor texts.
+     *
+     * @return array
      */
-    public function getManifestationTexts()
+    public function getFactorTexts()
     {
         $texts = array();
 
-        foreach ($this->manifestations as $tag) {
+        foreach ($this->factors as $tag) {
             $texts[] = $tag->getText();
         }
 
@@ -355,83 +307,58 @@ class StressLog
     }
 
     /**
-     * Add manifestation
+     * Add factor.
      *
-     * @param \AppBundle\Entity\StressManifestation $manifestation
-     *
-     * @return StressLog
+     * @param StressLogFactor $factor
+     * @return $this
      */
-    public function addManifestation(\AppBundle\Entity\StressManifestation $manifestation)
+    public function addFactor(StressLogFactor $factor)
     {
-        $this->manifestations->add($manifestation);
-        $manifestation->setStressLog($this);
+        $this->factors->add($factor);
+        $factor->setStressLog($this);
 
         return $this;
     }
 
     /**
-     * Remove manifestation
+     * Remove factor
      *
-     * @param \AppBundle\Entity\StressManifestation $manifestation
+     * @param \AppBundle\Entity\StressLogFactor $factor
      */
-    public function removeManifestation(\AppBundle\Entity\StressManifestation $manifestation)
+    public function removeFactor(StressLogFactor $factor)
     {
-        $this->manifestations->removeElement($manifestation);
-        $manifestation->setStressLog(null);
+        $this->factors->removeElement($factor);
+        $factor->setStressLog(null);
     }
 
     /**
-     * Get manifestations
+     * Get factors
      *
      * @return \Doctrine\Common\Collections\Collection
      */
-    public function getManifestations()
+    public function getFactors()
     {
-        return $this->manifestations;
+        return $this->factors;
     }
 
     /**
-     * Set user
-     *
-     * @param \AppBundle\Entity\User $user
-     *
-     * @return StressLog
-     */
-    public function setUser(\AppBundle\Entity\User $user = null)
-    {
-        $this->user = $user;
-
-        return $this;
-    }
-
-    /**
-     * Get user
-     *
-     * @return \AppBundle\Entity\User
-     */
-    public function getUser()
-    {
-        return $this->user;
-    }
-
-    /**
-     * Get manifestation texts as a comma-separated string.
+     * Get factor texts as a comma-separated string.
      *
      * @return string
      */
-    public function getManifestationString()
+    public function getFactorString()
     {
-        return implode(', ', $this->getManifestationTexts());
+        return implode(', ', $this->getFactorTexts());
     }
 
     /**
-     * Set manifestation texts as a comma-separated string.
+     * Set factor texts as a comma-separated string.
      *
      * @param string $str
      */
-    public function setManifestationString($str)
+    public function setFactorString($str)
     {
-        $this->setManifestationTexts(array_map('trim', explode(',', $str)));
+        $this->setFactorTexts(array_map('trim', explode(',', $str)));
     }
 
     /**
@@ -482,5 +409,4 @@ class StressLog
 
         return $dt;
     }
-
 }
