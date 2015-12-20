@@ -12,18 +12,12 @@ class LoadStressLogData extends AbstractFixture implements OrderedFixtureInterfa
 {
     public function load(ObjectManager $manager)
     {
-        $log = new StressLog();
-        $log->setTime(new \DateTime());
+        $log = StressLog::create($this->getReference('test-user'));
         $log->setLevel(6);
-        $log->setUser($this->getReference('test-user'));
-        // $this->addReference('stress-log-1', $log);
         $manager->persist($log);
 
-        $log = new StressLog();
-        $log->setTime(new \DateTime());
+        $log = StressLog::create($this->getReference('test-user'));
         $log->setLevel(3);
-        $log->setUser($this->getReference('test-user'));
-        // $this->addReference('stress-log-1', $log);
         $manager->persist($log);
 
         $manager->flush();

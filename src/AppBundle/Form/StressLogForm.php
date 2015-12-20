@@ -4,6 +4,7 @@ namespace AppBundle\Form;
 
 use AppBundle\Util\TagManager;
 use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\Extension\Core\Type\TimezoneType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\Form\Extension\Core\Type\DateTimeType;
@@ -49,7 +50,8 @@ class StressLogForm extends AbstractType
                 'multiple' => true,
             ))
             ->add('notes', TextAreaType::class, array('required' => false))
-            ->add('time', DateTimeType::class, array('date_widget' => 'single_text'))
+            ->add('localtime', DateTimeType::class, array('date_widget' => 'single_text'))
+            ->add('timezone', TimezoneType::class)
         ;
 
 

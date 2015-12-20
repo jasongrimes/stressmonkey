@@ -23,4 +23,9 @@ class User extends BaseUser
         parent::__construct();
         // your own logic
     }
+
+    public function getTimezone()
+    {
+        return null;
+    }
 }

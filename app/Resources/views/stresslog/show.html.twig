@@ -6,8 +6,8 @@
     <h1>Stress log entry</h1>
 
     <div>
-        Time:
-        {{ log.time|date }}
+        Local time:
+        {{ log.localtime|date("F j, Y H:i T (O)", false) }}
     </div>
 
     <div>

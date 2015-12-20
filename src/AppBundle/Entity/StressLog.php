@@ -35,15 +35,32 @@ class StressLog
     private $user;
 
     /**
+     * @deprecated Use $localtime and $timezone instead.
+     *
+     * @var \DateTime
+     *
+     * @ORM\Column(name="time", type="datetime")
+     */
+    private $time;
+
+    /**
      * @var \DateTime
      *
      * @Assert\NotBlank()
      * @Assert\Type("\DateTime")
      *
-     * @ORM\Column(name="time", type="datetime")
-     *
+     * @ORM\Column(name="local_time", type="datetime")
      */
-    private $time;
+    private $localtime;
+
+    /**
+     * @var string
+     *
+     * @Assert\NotBlank()
+     *
+     * @ORM\Column(name="timezone", type="string", length=50)
+     */
+    private $timezone;
 
     /**
      * @var int
@@ -96,8 +113,12 @@ class StressLog
     {
         $log = new static;
         $log->setUser($user);
-        $log->setTime(new \DateTime);
+        $log->setTimezone($user->getTimezone() ?: 'UTC');
+        $log->setLocaltime(new \DateTime(null, new \DateTimeZone($log->getTimezone())));
         $log->setLevel(5);
+
+        // Deprecated...
+        $log->setTime(new \DateTime);
 
         return $log;
     }
@@ -411,6 +432,55 @@ class StressLog
     public function setManifestationString($str)
     {
         $this->setManifestationTexts(array_map('trim', explode(',', $str)));
+    }
+
+    /**
+     * Set the local time of the log entry.
+     *
+     * Note that only the "clock time" is used; the timezone is ignored.
+     * The timezone is assumed to be $this->timezone.
+     *
+     * @param string $localtime
+     */
+    public function setLocaltime($localtime)
+    {
+        $this->localtime = $localtime;
+    }
+
+    /**
+     * @return \DateTime
+     */
+    public function getLocaltime()
+    {
+        return new \DateTime($this->localtime->format('Y-m-d H:i:s'), new \DateTimeZone($this->timezone));
+    }
+
+    /**
+     * @param string $timezone
+     */
+    public function setTimezone($timezone)
+    {
+        $this->timezone = $timezone;
+    }
+
+    /**
+     * @return string
+     */
+    public function getTimezone()
+    {
+        return $this->timezone;
+
+    }
+
+    /**
+     * @return \DateTime
+     */
+    public function getTimeUtc()
+    {
+        $dt = $this->getLocaltime();
+        $dt->setTimezone(new \DateTimeZone('UTC'));
+
+        return $dt;
     }
 
 }

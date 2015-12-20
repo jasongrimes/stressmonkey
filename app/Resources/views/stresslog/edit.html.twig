@@ -41,7 +41,8 @@
             margin: 5px;
         }
 
-        .compact-time .form-inline .form-control {
+        #stress_log_form_localtime { display: inline; }
+        .compact-time .form-control {
             display: inline-block;
             width: auto;
             vertical-align: middle;
@@ -55,6 +56,10 @@
 
 {% block javascripts %}
     {{ parent() }}
+
+    <script src="{{ asset('js/moment.js') }}"></script>
+    <script src="{{ asset('js/moment-timezone-with-data-2010-2020.js') }}"></script>
+    <script src="{{ asset('js/jstz-1.0.4.min.js') }}"></script>
 
     <script src="{{ asset('js/nouislider.js') }}"></script>
     <script src="{{ asset('js/select2.full.min.js') }}"></script>
@@ -116,6 +121,23 @@
             $select.prepend($suggestionsGroup).trigger('change');
         }
 
+        function getSelectedLocaltime() {
+            var date = $('#stress_log_form_localtime_date').val(),
+                hour = $('#stress_log_form_localtime_time_hour').val(),
+                min = $('#stress_log_form_localtime_time_minute').val();
+
+            if (hour < 10) hour = "0" + hour;
+            if (min < 10) min = "0" + min;
+
+            return date + " " + hour + ":" + min + ":00";
+        }
+        function renderSelectedDate() {
+            var m = moment.tz(getSelectedLocaltime(), $('#stress_log_form_timezone').val());
+
+            $('#rendered-localtime').text(m.format("MMMM D, YYYY HH:mm"));
+            $('#rendered-timezone').text(m.format("z (Z)"));
+        }
+
         $(function() {
             // Slider
             var slider = document.getElementById('slider');
@@ -160,6 +182,26 @@
 
             updateSuggestions();
 
+            $('#localtime-form-group').on('change', function() { renderSelectedDate(); });
+            {% if log is not defined %}
+                // Guess timezone for new entries
+                var tzname, oldtzname, m, tz = jstz.determine();
+                if (tz) {
+                    tzname = tz.name();
+                    oldtzname = $('#stress_log_form_timezone');
+                    if (tzname != oldtzname) {
+                        // Change timezone and set current time.
+                        m = moment().tz(tzname);
+                        $('#stress_log_form_localtime_date').val(m.format("YYYY-MM-DD"));
+                        $('#stress_log_form_localtime_time_hour').val(m.format("h"));
+                        $('#stress_log_form_localtime_time_minute').val(m.format("m"));
+                        $('#stress_log_form_timezone').val(tz.name());
+                    }
+
+                }
+            {% endif %}
+            renderSelectedDate();
+
             /*
             // Debugging...
             var $eventSelect = $("#testselect");
@@ -200,23 +242,29 @@
 
         {{ form_errors(form) }}
 
-        <div class="form-group compact-time">
-            {{ form_errors(form.notes) }}
-            <!--label class="control-label" for="stress_log_form_time_date">
-                Time:-->
-                    <span style="font-weight: normal;">
-                        {{ form.vars.value.time|date }}
-                        UTC
-                        <a title="Change time" class="small" style="margin-left: 5px;" role="button" data-toggle="collapse" href="#collapseTime" aria-expanded="false" aria-controls="collapseTime">
-                            <span class="glyphicon glyphicon-pencil"></span>
-                        </a>
-                    </span>
-                <div class="collapse" id="collapseTime">
-                    <div class="well">
-                        {{ form_widget(form.time) }}
-                    </div>
+        <div id="localtime-form-group" class="form-group compact-time">
+            {{ form_errors(form.localtime) }}
+            {{ form_errors(form.timezone) }}
+            <div>
+                <span id="rendered-localtime">
+                    {{ form.vars.value.localtime | date("F j, Y H:i", false) }}
+                </span>
+                <span id="rendered-timezone" class="small text-muted">
+                    {{ form.vars.value.localtime | date("T (O)", false) }}
+                </span>
+                <a title="Change time" class="small" style="margin-left: 5px;" role="button" data-toggle="collapse" href="#collapseTime" aria-expanded="false" aria-controls="collapseTime">
+                    <span class="glyphicon glyphicon-pencil"></span>
+                </a>
+            </div>
+            <div class="collapse" id="collapseTime">
+                <div class="well">
+                    <label class="control-label" for="stress_log_form_localtime">
+                        Local time
+                    </label><br/>
+                    {{ form_widget(form.localtime) }}
+                    {{ form_widget(form.timezone) }}
                 </div>
-            <!--/label-->
+            </div>
         </div>
 
         <div class="form-group">
@@ -231,17 +279,6 @@
             {{ form_errors(form.manifestationTexts) }}
             {{ form_widget(form.manifestationTexts, {'attr': {'class': 'tag-selector'}}) }}
         </div>
-
-        {#
-        <div class="form-group">
-            <select id="testselect" class="tag-selector form-control" multiple>
-                <option value=" three">three</option>
-                <option value="one">one</option>
-                <option value="two">two</option>
-                <option value="three">three</option>
-            </select>
-        </div>
-        #}
 
         <div class="form-group">
             {{ form_label(form.notes) }}

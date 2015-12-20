@@ -45,9 +45,7 @@ class StressLogRepositoryTest extends KernelTestCase
     {
         $texts = array('one', 'two', 'three');
 
-        $log = new StressLog();
-        $log->setTime(new \DateTime());
-        $log->setUser($this->user);
+        $log = StressLog::create($this->user);
         $log->setLevel(5);
         $log->setManifestationTexts($texts);
 
