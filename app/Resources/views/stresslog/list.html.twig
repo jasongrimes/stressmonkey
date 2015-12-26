@@ -120,7 +120,7 @@
             </thead>
             <tbody>
                 {% for log in logs %}
-                    {% set rowclass = loop.index is divisibleby(2) ? 'row-even' : 'row-odd'  %}
+                    {% set rowclass = loop.index is divisible by(2) ? 'row-even' : 'row-odd'  %}
                     <tr class="{{ rowclass }}">
                         <td>
                             <span class="text-muted">
