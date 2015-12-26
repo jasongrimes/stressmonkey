@@ -14,118 +14,16 @@ use Doctrine\ORM\EntityRepository;
  */
 class StressLogRepository extends EntityRepository
 {
-    protected function createFilteredQueryBuilder(User $user, array $filter = array())
-    {
-        $qb = $this->getEntityManager()->createQueryBuilder();
-
-        //
-        // Build the (... AND ...) part of the WHERE clause.
-        //
-        $and = $qb->expr()->andX();
-
-        // User
-        $and->add($qb->expr()->eq('l.user', ':user'));
-        $qb->setParameter(':user', $user);
-
-        // From time
-        if (isset($filter['from'])) {
-            $and->add($qb->expr()->gte('l.localtime', ':from'));
-            $qb->setParameter(':from', $filter['from']);
-        }
-
-        // To time
-        if (isset($filter['to'])) {
-            $and->add($qb->expr()->lte('l.localtime', ':to'));
-            $qb->setParameter(':to', $filter['to']);
-        }
-
-        // Level
-        if (isset($filter['level'])) {
-            $op = 'eq';
-            if (isset($filter['levelOp'])) {
-                if ($filter['levelOp'] == '<=') {
-                    $op = 'lte';
-                } else if ($filter['levelOp'] == '>=') {
-                    $op = 'gte';
-                }
-            }
-            $and->add($qb->expr()->$op('l.level', ':level'));
-            $qb->setParameter(':level', $filter['level']);
-        }
-
-        // Factors
-        if (isset($filter['factors'])) {
-            $factors = array_map('trim', explode(', ', $filter['factors']));
-            $i = 0;
-            foreach ($factors as $factor) {
-                $qb->join('l.factors', 'f', 'ON', 'f.text = :factor' . $i);
-                $qb->setParameter(':factor' . $i, $factor);
-                $i++;
-            }
-        }
-        /*
-        if (isset($filter['factors'])) {
-            $factors = array_map(trim, explode(', ', $filter['factors']));
-            if (count($factors) > 1 && isset($filter['factorOp']) && $filter['factorOp'] == 'or') {
-                $clause = $qb->expr()->orX();
-            } else {
-                $clause = $and;
-            }
-
-            foreach ($factors as $factor) {
-                $clause->add('')
-            }
-
-            $op = 'eq';
-            if (isset($filter['factorOp'])) {
-                if ($filter['factorOp'] == '<=') {
-                    $op = 'lte';
-                } else if ($filter['factorOp'] == '>=') {
-                    $op = 'gte';
-                }
-            }
-            $and->add($qb->expr()->$op('l.factor', ':factor'));
-            $qb->setParameter(':factor', $filter['factor']);
-        }
-        */
-
-        if (isset($filter['withNotes']) && $filter['withNotes']) {
-            $and->add($qb->expr()->isNotNull('l.notes'));
-            $and->add($qb->expr()->neq('l.notes', ':emptyStr'));
-            $qb->setParameter(':emptyStr', '');
-        }
-
-        // Put the query together.
-        $qb->select(array('l'))
-            ->from('AppBundle:StressLog', 'l')
-            ->where($and);
-
-        return $qb;
-    }
-
+    /**
+     * Find log entries made by the given user that match the given filter criteria.
+     *
+     * @param User $user
+     * @param array $filter
+     * @param array $options
+     * @return array
+     */
     public function findFiltered(User $user, array $filter = array(), array $options = array())
     {
-        /*
-        $query = $this->getEntityManager()->createQuery('
-            SELECT l
-            FROM AppBundle:StressLog l
-            WHERE l.user = :user
-            ORDER BY l.localtime DESC
-        ')->setParameter('user', $user);
-
-        return $query;
-        */
-
-        /*
-        $qb = $this->createFilteredQueryBuilder($user, $filter);
-        $qb->orderBy('l.localtime', 'DESC');
-
-        echo $qb->getDQL();
-
-        return $qb->getQuery()->getResult();
-        */
-
-
         list($sql, $params) = $this->commonSql($user, $filter);
         $sql = 'SELECT l.id ' . $sql . ' ORDER BY l.local_time DESC ';
 
@@ -135,6 +33,11 @@ class StressLogRepository extends EntityRepository
         return $this->findByIds(array_column($result, 'id'));
     }
 
+    /**
+     * @param User $user
+     * @param array $filter
+     * @return array
+     */
     protected function commonSql(User $user, array $filter = array())
     {
         $params = array();
@@ -214,6 +117,11 @@ class StressLogRepository extends EntityRepository
 
     }
 
+    /**
+     * @param array $ids
+     * @param bool $keepOrder
+     * @return array
+     */
     public function findByIds(array $ids, $keepOrder = true)
     {
         $unsorted = $this->findBy(array('id' => $ids));
@@ -226,6 +134,11 @@ class StressLogRepository extends EntityRepository
 
     }
 
+    /**
+     * @param array $objects
+     * @param array $idSortMap
+     * @return array
+     */
     public function reorderObjectsById(array $objects, array $idSortMap)
     {
         usort($objects, function ($a, $b) use ($idSortMap) {
