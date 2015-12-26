@@ -1,0 +1,161 @@
+{% extends "::base.html.twig" %}
+
+{% block title %}Stress log entries{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style type="text/css">
+        tr.row-odd {
+            background-color: #f9f9f9;
+        }
+        .table>tbody>tr.subrow>td {
+            border-top: none;
+        }
+        label.inline-label {
+            float: left;
+            width: auto;
+            margin-top: 7px;
+        }
+        .inline-controls .form-control {
+            display: inline-block;
+            width: auto;
+            vertical-align: middle;
+        }
+
+        .compact-time .form-control {
+            display: inline-block;
+            width: auto;
+            vertical-align: middle;
+        }
+        .compact-time input[type=date] {
+            margin-right: 2px;
+        }
+        .rendered-date, .rendered-time {
+            white-space: nowrap;
+        }
+    </style>
+{% endblock %}
+
+{% form_theme form 'bootstrap_3_horizontal_layout.html.twig' %}
+
+{% block body %}
+    <div class="page-header">
+        <div class="pull-right">
+            <a href="{{ path('newLog') }}">
+                <span class="glyphicon glyphicon-plus-sign"></span>
+                Add a new log entry
+            </a>
+        </div>
+
+        <h1>Log entries</h1>
+    </div>
+
+    <!-- Search form -->
+    <div class="panel panel-default">
+        <div class="panel-heading" role="tab" id="headingOne">
+            <h4 class="panel-title">
+                <a role="button" data-toggle="collapse" href="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                    <span class="glyphicon glyphicon-filter"></span>
+                    Filter log entries
+                </a>
+            </h4>
+        </div>
+        <div id="collapseOne" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="headingOne">
+            <div class="panel-body">
+
+                {{ form_start(form, {'attr': {'id': 'filter-form', 'class': 'form-horizontal'}}) }}
+                {{ form_errors(form) }}
+
+                {{ form_row(form.from, {'attr': {'class': 'compact-time'}}) }}
+                {{ form_row(form.to, {'attr': {'class': 'compact-time'}}) }}
+
+                <div class="form-group">
+                    {{ form_label(form.level) }}
+                    <div class="col-sm-10 inline-controls">
+                        {{ form_widget(form.levelOp) }}
+                        {{ form_widget(form.level) }}
+                        {{ form_errors(form.levelOp) }}
+                        {{ form_errors(form.level) }}
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    {{ form_label(form.factors) }}
+                    <div class="col-sm-10 inline-controls">
+                        {{ form_widget(form.factorOp) }}
+                        {{ form_widget(form.factors) }}
+                        {{ form_errors(form.factorOp) }}
+                        {{ form_errors(form.factors) }}
+                    </div>
+                </div>
+
+                {{ form_row(form.withNotes) }}
+
+                <div class="form-group">
+                    <div class="col-sm-offset-2 col-sm-10">
+                        <button type="submit" class="btn btn-primary">Filter</button>
+                        <a href="{{ path('listLog') }}" class="btn btn-link">Clear</a>
+                    </div>
+                </div>
+
+                {{ form_end(form) }}
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Results -->
+    {% if logs is empty %}
+        <div class="alert alert-info">
+            No log entries found.
+        </div>
+
+    {% else %}
+        <table class="table">
+            <thead>
+                <th>Local time</th>
+                <th>Level</th>
+                <th>Factors</th>
+                <th> </th>
+            </thead>
+            <tbody>
+                {% for log in logs %}
+                    {% set rowclass = loop.index is divisibleby(2) ? 'row-even' : 'row-odd'  %}
+                    <tr class="{{ rowclass }}">
+                        <td>
+                            <span class="text-muted">
+                                <span class="rendered-date">
+                                    {{ log.localtime|date('M j, Y', false) }}
+                                </span>
+                                <span class="rendered-time">
+                                    {{ log.localtime|date('H:i T', false) }}
+                                </span>
+                            </span>
+                        </td>
+                        <td>
+                            {{ log.level }}
+                        </td>
+                        <td>
+                            {{ log.factorString }}
+                        </td>
+                        <td>
+                            <a href="{{ path('editLog', {'id': log.id}) }}">
+                                <span class="glyphicon glyphicon-pencil"></span>
+                            </a>
+                        </td>
+                    </tr>
+                    {% if not log.notes is empty %}
+                        <tr class="{{ rowclass }} subrow">
+                            <td colspan="4">
+                                <span class="text-muted small">Notes:</span>
+                                {{ log.notes }}
+                            </td>
+                        </tr>
+                    {% endif %}
+                {% endfor %}
+            </tbody>
+        </table>
+
+    {% endif %}
+
+{% endblock %}

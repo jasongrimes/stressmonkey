@@ -2,6 +2,7 @@
 
 namespace AppBundle\Controller;
 
+use AppBundle\Form\FilterStressLogsForm;
 use AppBundle\Form\StressLogForm;
 use AppBundle\Util\TagManager;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
@@ -75,6 +76,36 @@ class StressLogController extends Controller
     {
         return $this->render('stresslog/show.html.twig', array(
             'log' => $log,
+        ));
+    }
+
+    /**
+     * @Route("/log", name="listLog")
+     * @Security("is_granted('IS_AUTHENTICATED_REMEMBERED')")
+     */
+    public function listAction(Request $request)
+    {
+        $filter = array();
+        $options = array();
+
+        $form = $this->get('form.factory')->createNamed('filter', FilterStressLogsForm::class, null, array(
+            'csrf_protection' => false,
+        ));
+
+        $form->handleRequest($request);
+        if ($form->isValid()) {
+            $filter = $form->getData();
+        }
+
+        $logs = $this->getDoctrine()
+            ->getRepository('AppBundle:StressLog')
+            ->findFiltered($this->getUser(), $filter, $options)
+        ;
+
+
+        return $this->render('stresslog/list.html.twig', array(
+            'logs' => $logs,
+            'form' => $form->createView(),
         ));
     }
 

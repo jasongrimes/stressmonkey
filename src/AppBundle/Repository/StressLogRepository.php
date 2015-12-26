@@ -2,6 +2,8 @@
 
 namespace AppBundle\Repository;
 
+use AppBundle\Entity\User;
+use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\EntityRepository;
 
 /**
@@ -12,4 +14,224 @@ use Doctrine\ORM\EntityRepository;
  */
 class StressLogRepository extends EntityRepository
 {
+    protected function createFilteredQueryBuilder(User $user, array $filter = array())
+    {
+        $qb = $this->getEntityManager()->createQueryBuilder();
+
+        //
+        // Build the (... AND ...) part of the WHERE clause.
+        //
+        $and = $qb->expr()->andX();
+
+        // User
+        $and->add($qb->expr()->eq('l.user', ':user'));
+        $qb->setParameter(':user', $user);
+
+        // From time
+        if (isset($filter['from'])) {
+            $and->add($qb->expr()->gte('l.localtime', ':from'));
+            $qb->setParameter(':from', $filter['from']);
+        }
+
+        // To time
+        if (isset($filter['to'])) {
+            $and->add($qb->expr()->lte('l.localtime', ':to'));
+            $qb->setParameter(':to', $filter['to']);
+        }
+
+        // Level
+        if (isset($filter['level'])) {
+            $op = 'eq';
+            if (isset($filter['levelOp'])) {
+                if ($filter['levelOp'] == '<=') {
+                    $op = 'lte';
+                } else if ($filter['levelOp'] == '>=') {
+                    $op = 'gte';
+                }
+            }
+            $and->add($qb->expr()->$op('l.level', ':level'));
+            $qb->setParameter(':level', $filter['level']);
+        }
+
+        // Factors
+        if (isset($filter['factors'])) {
+            $factors = array_map('trim', explode(', ', $filter['factors']));
+            $i = 0;
+            foreach ($factors as $factor) {
+                $qb->join('l.factors', 'f', 'ON', 'f.text = :factor' . $i);
+                $qb->setParameter(':factor' . $i, $factor);
+                $i++;
+            }
+        }
+        /*
+        if (isset($filter['factors'])) {
+            $factors = array_map(trim, explode(', ', $filter['factors']));
+            if (count($factors) > 1 && isset($filter['factorOp']) && $filter['factorOp'] == 'or') {
+                $clause = $qb->expr()->orX();
+            } else {
+                $clause = $and;
+            }
+
+            foreach ($factors as $factor) {
+                $clause->add('')
+            }
+
+            $op = 'eq';
+            if (isset($filter['factorOp'])) {
+                if ($filter['factorOp'] == '<=') {
+                    $op = 'lte';
+                } else if ($filter['factorOp'] == '>=') {
+                    $op = 'gte';
+                }
+            }
+            $and->add($qb->expr()->$op('l.factor', ':factor'));
+            $qb->setParameter(':factor', $filter['factor']);
+        }
+        */
+
+        if (isset($filter['withNotes']) && $filter['withNotes']) {
+            $and->add($qb->expr()->isNotNull('l.notes'));
+            $and->add($qb->expr()->neq('l.notes', ':emptyStr'));
+            $qb->setParameter(':emptyStr', '');
+        }
+
+        // Put the query together.
+        $qb->select(array('l'))
+            ->from('AppBundle:StressLog', 'l')
+            ->where($and);
+
+        return $qb;
+    }
+
+    public function findFiltered(User $user, array $filter = array(), array $options = array())
+    {
+        /*
+        $query = $this->getEntityManager()->createQuery('
+            SELECT l
+            FROM AppBundle:StressLog l
+            WHERE l.user = :user
+            ORDER BY l.localtime DESC
+        ')->setParameter('user', $user);
+
+        return $query;
+        */
+
+        /*
+        $qb = $this->createFilteredQueryBuilder($user, $filter);
+        $qb->orderBy('l.localtime', 'DESC');
+
+        echo $qb->getDQL();
+
+        return $qb->getQuery()->getResult();
+        */
+
+
+        list($sql, $params) = $this->commonSql($user, $filter);
+        $sql = 'SELECT l.id ' . $sql . ' ORDER BY l.local_time DESC ';
+
+        $db = $this->getEntityManager()->getConnection();
+        $result = $db->fetchAll($sql, $params);
+
+        return $this->findByIds(array_column($result, 'id'));
+    }
+
+    protected function commonSql(User $user, array $filter = array())
+    {
+        $params = array();
+
+        //
+        // FROM and JOINs
+        //
+        $sql = 'FROM stress_logs l ';
+
+        // JOIN for factors.
+        $factors = array();
+        $factorJoinType = '';
+        if (isset($filter['factors'])) {
+            $factors = array_map('trim', explode(',', $filter['factors']));
+            $factorJoinType = (isset($filter['factorOp']) && $filter['factorOp'] == 'or') ? 'left' : 'inner';
+        }
+        foreach ($factors as $i => $factor) {
+            if ($factorJoinType == 'left') {
+                $sql .= 'LEFT ';
+            }
+            $sql .= 'JOIN stress_log_factors f' . $i . ' ';
+            $sql .= 'ON (l.id = f' . $i . '.stress_log_id AND f' . $i . '.text = :factor' . $i . ') ';
+            $params['factor' . $i] = $factor;
+        }
+
+        //
+        // WHERE clause
+        //
+        $sql .= 'WHERE user_id = :user_id ';
+        $params['user_id'] = $user->getId();
+
+        // OR factors.
+        if ($factorJoinType == 'left') {
+            $sql .= 'AND (';
+            foreach ($factors as $i => $factor) {
+                if ($i > 0) $sql .= 'OR ';
+                $sql .= 'f' . $i . '.text IS NOT NULL ';
+            }
+            $sql .= ') ';
+        }
+
+        // From local time
+        if (isset($filter['from'])) {
+            if (!$filter['from'] instanceof \DateTime) {
+                throw new \InvalidArgumentException('Expected filter "from" value to be a \DateTime object.');
+            }
+            $sql .= 'AND l.local_time >= :from ';
+            $params['from'] = $filter['from']->format('Y-m-d H:i:s');
+        }
+
+        // To local time
+        if (isset($filter['to'])) {
+            if (!$filter['to'] instanceof \DateTime) {
+                throw new \InvalidArgumentException('Expected filter "to" value to be a \DateTime object.');
+            }
+            $sql .= 'AND l.local_time >= :to ';
+            $params['to'] = $filter['to']->format('Y-m-d H:i:s');
+        }
+
+        // Level
+        if (isset($filter['level'])) {
+            $op = '=';
+            if (isset($filter['levelOp']) && in_array($filter['levelOp'], array('=', '<=', '>='))) {
+                $op = $filter['levelOp'];
+            }
+            $sql .= 'AND l.level ' . $op . ' :level ';
+            $params['level'] = $filter['level'];
+        }
+
+        // With notes
+        if (isset($filter['withNotes']) && $filter['withNotes']) {
+            $sql .= 'AND l.notes IS NOT NULL AND l.notes != "" ';
+        }
+
+
+        return array($sql, $params);
+
+    }
+
+    public function findByIds(array $ids, $keepOrder = true)
+    {
+        $unsorted = $this->findBy(array('id' => $ids));
+
+        if ($keepOrder) {
+            return $this->reorderObjectsById($unsorted, array_flip($ids));
+        }
+
+        return $unsorted;
+
+    }
+
+    public function reorderObjectsById(array $objects, array $idSortMap)
+    {
+        usort($objects, function ($a, $b) use ($idSortMap) {
+            return ($idSortMap[$a->getId()] < $idSortMap[$b->getId()]) ? -1 : 1;
+        });
+
+        return $objects;
+    }
 }
