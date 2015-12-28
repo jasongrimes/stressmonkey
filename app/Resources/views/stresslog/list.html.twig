@@ -60,7 +60,7 @@
                 </a>
             </h4>
         </div>
-        <div id="collapseOne" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="headingOne">
+        <div id="collapseOne" class="panel-collapse collapse {{ expandForm ? 'in' : '' }}" role="tabpanel" aria-labelledby="headingOne">
             <div class="panel-body">
 
                 {{ form_start(form, {'attr': {'id': 'filter-form', 'class': 'form-horizontal'}}) }}
@@ -158,4 +158,21 @@
 
     {% endif %}
 
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+
+    <script type="text/javascript">
+        $(function() {
+            $('#filter_from_date').on('change', function() {
+                if ($('#filter_from_time_hour').val() == '') $('#filter_from_time_hour').val('0');
+                if ($('#filter_from_time_minute').val() == '') $('#filter_from_time_minute').val('0');
+            });
+            $('#filter_to_date').on('change', function() {
+                if ($('#filter_to_time_hour').val() == '') $('#filter_to_time_hour').val('23');
+                if ($('#filter_to_time_minute').val() == '') $('#filter_to_time_minute').val('59');
+            });
+        });
+    </script>
 {% endblock %}

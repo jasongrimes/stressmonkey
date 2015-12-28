@@ -9,6 +9,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Security;
 use AppBundle\Entity\StressLog;
+use Symfony\Component\Form\FormInterface;
 use Symfony\Component\HttpFoundation\Request;
 
 class StressLogController extends Controller
@@ -88,6 +89,7 @@ class StressLogController extends Controller
         $filter = array();
         $options = array();
 
+        /** @var FormInterface $form */
         $form = $this->get('form.factory')->createNamed('filter', FilterStressLogsForm::class, null, array(
             'csrf_protection' => false,
         ));
@@ -106,6 +108,7 @@ class StressLogController extends Controller
         return $this->render('stresslog/list.html.twig', array(
             'logs' => $logs,
             'form' => $form->createView(),
+            'expandForm' => $form->isSubmitted(),
         ));
     }
 
