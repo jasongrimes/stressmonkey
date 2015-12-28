@@ -111,6 +111,12 @@
         </div>
 
     {% else %}
+        {% if count == 1 %}
+            <strong>{{ count }}</strong> result found.
+        {% else %}
+            <strong>{{ count }}</strong> results found.
+        {% endif %}
+
         <table class="table">
             <thead>
                 <th>Local time</th>

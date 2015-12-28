@@ -4,6 +4,7 @@ namespace AppBundle\Controller;
 
 use AppBundle\Form\FilterStressLogsForm;
 use AppBundle\Form\StressLogForm;
+use AppBundle\Repository\StressLogRepository;
 use AppBundle\Util\TagManager;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
@@ -99,16 +100,17 @@ class StressLogController extends Controller
             $filter = $form->getData();
         }
 
-        $logs = $this->getDoctrine()
-            ->getRepository('AppBundle:StressLog')
-            ->findFiltered($this->getUser(), $filter, $options)
-        ;
+        /** @var StressLogRepository $repo */
+        $repo = $this->getDoctrine()->getRepository('AppBundle:StressLog');
 
+        $logs = $repo->findFiltered($this->getUser(), $filter, $options);
+        $count = $repo->countFiltered($this->getUser(), $filter);
 
         return $this->render('stresslog/list.html.twig', array(
             'logs' => $logs,
             'form' => $form->createView(),
             'expandForm' => $form->isSubmitted(),
+            'count' => $count,
         ));
     }
 

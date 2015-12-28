@@ -14,6 +14,17 @@ use Doctrine\ORM\EntityRepository;
  */
 class StressLogRepository extends EntityRepository
 {
+    public function countFiltered(User $user, array $filter = array())
+    {
+        list($sql, $params) = $this->commonSql($user, $filter);
+
+        $sql = 'SELECT COUNT(l.id) ' . $sql;
+
+        $db = $this->getEntityManager()->getConnection();
+
+        return $db->fetchColumn($sql, $params);
+    }
+
     /**
      * Find log entries made by the given user that match the given filter criteria.
      *
