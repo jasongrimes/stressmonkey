@@ -93,7 +93,7 @@ class StressLogRepository extends EntityRepository
             if (!$filter['to'] instanceof \DateTime) {
                 throw new \InvalidArgumentException('Expected filter "to" value to be a \DateTime object.');
             }
-            $sql .= 'AND l.local_time >= :to ';
+            $sql .= 'AND l.local_time <= :to ';
             $params['to'] = $filter['to']->format('Y-m-d H:i:s');
         }
 
@@ -112,6 +112,10 @@ class StressLogRepository extends EntityRepository
             $sql .= 'AND l.notes IS NOT NULL AND l.notes != "" ';
         }
 
+        /*
+        echo $sql . "\n";
+        var_dump($params);
+        */
 
         return array($sql, $params);
 
@@ -127,7 +131,7 @@ class StressLogRepository extends EntityRepository
         $unsorted = $this->findBy(array('id' => $ids));
 
         if ($keepOrder) {
-            return $this->reorderObjectsById($unsorted, array_flip($ids));
+            return $this->reorderObjectsById($unsorted, $ids);
         }
 
         return $unsorted;
@@ -136,12 +140,25 @@ class StressLogRepository extends EntityRepository
 
     /**
      * @param array $objects
-     * @param array $idSortMap
+     * @param array $idsInOrder
      * @return array
      */
-    public function reorderObjectsById(array $objects, array $idSortMap)
+    public function reorderObjectsById(array $objects, array $idsInOrder)
     {
+        $idSortMap = array_flip(array_values($idsInOrder));
+
         usort($objects, function ($a, $b) use ($idSortMap) {
+            // If neither object is in the sort map, consider them equal.
+            if (!isset($idSortMap[$a->getId()]) && !isset($idSortMap[$b->getId()])) {
+                return 0;
+            }
+            // If one of the objects is not in the sort map, assume it is bigger.
+            if (!isset($idSortMap[$a->getId()])) {
+                return 1;
+            } else if (!isset($idSortMap[$b->getId()])) {
+                return -1;
+            }
+
             return ($idSortMap[$a->getId()] < $idSortMap[$b->getId()]) ? -1 : 1;
         });
 

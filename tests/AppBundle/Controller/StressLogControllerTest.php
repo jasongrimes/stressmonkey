@@ -42,7 +42,7 @@ class StressLogControllerTest extends WebTestCase
     {
         return array(
             array('/new'),
-            // ...
+            array('/log'),
         );
     }
 

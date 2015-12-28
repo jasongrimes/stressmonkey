@@ -367,9 +367,9 @@ class StressLog
      * Note that only the "clock time" is used; the timezone is ignored.
      * The timezone is assumed to be $this->timezone.
      *
-     * @param string $localtime
+     * @param \DateTime $localtime
      */
-    public function setLocaltime($localtime)
+    public function setLocaltime(\DateTime $localtime)
     {
         $this->localtime = $localtime;
     }
