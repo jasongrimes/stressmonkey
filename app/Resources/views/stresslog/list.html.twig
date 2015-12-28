@@ -136,7 +136,12 @@
                             {{ log.level }}
                         </td>
                         <td>
-                            {{ log.factorString }}
+                            {%- for factorText in log.factorTexts -%}
+                                {{- loop.index > 1 ? ', ' : '' -}}
+                                <a href="{{ path('listLog', {'filter[factors]': factorText}) }}">
+                                    {{ factorText -}}
+                                </a>
+                            {%- endfor -%}
                         </td>
                         <td>
                             <a href="{{ path('editLog', {'id': log.id}) }}">
