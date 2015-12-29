@@ -35,8 +35,13 @@ class StressLogRepository extends EntityRepository
      */
     public function findFiltered(User $user, array $filter = array(), array $options = array())
     {
+        $orderBy = $options['orderBy'] ?: 'local_time';
+        if ($orderBy == 'localtime') $orderBy = 'local_time';
+        $orderDir = strtolower($options['orderDir']) == 'asc' ? 'asc' : 'desc';
+
         list($sql, $params) = $this->commonSql($user, $filter);
-        $sql = 'SELECT l.id ' . $sql . ' ORDER BY l.local_time DESC ';
+        $sql = 'SELECT l.id ' . $sql . ' ';
+        $sql .= 'ORDER BY l.`' . $orderBy . '` ' . $orderDir . ' ';
 
         $db = $this->getEntityManager()->getConnection();
         $result = $db->fetchAll($sql, $params);

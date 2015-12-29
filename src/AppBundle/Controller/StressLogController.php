@@ -88,7 +88,13 @@ class StressLogController extends Controller
     public function listAction(Request $request)
     {
         $filter = array();
-        $options = array();
+        $options = array(
+            'orderBy' => 'localtime',
+            'orderDir' => 'desc',
+        );
+        if ($request->query->has('options')) {
+            $options = (array) $request->query->get('options') + $options;
+        }
 
         /** @var FormInterface $form */
         $form = $this->get('form.factory')->createNamed('filter', FilterStressLogsForm::class, null, array(
@@ -111,6 +117,8 @@ class StressLogController extends Controller
             'form' => $form->createView(),
             'expandForm' => $form->isSubmitted(),
             'count' => $count,
+            'filter' => $filter,
+            'options' => $options,
         ));
     }
 

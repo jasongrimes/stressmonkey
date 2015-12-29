@@ -119,9 +119,35 @@
 
         <table class="table">
             <thead>
-                <th>Local time</th>
-                <th>Level</th>
-                <th>Factors</th>
+                <th>
+                    <a href="{{ path('listLog', {
+                        'filter': filter,
+                        'options[orderBy]': 'localtime',
+                        'options[orderDir]': options.orderBy == 'localtime' and options.orderDir == 'desc' ? 'asc' : 'desc'
+                      }) }}">
+                        Local time
+                    </a>
+                    {% if options.orderBy == 'localtime' %}
+                        <span class="small glyphicon glyphicon-triangle-{{ options.orderDir == 'asc' ? 'top' : 'bottom' }}"></span>
+                    {% endif %}
+                </th>
+
+                <th>
+                    <a href="{{ path('listLog', {
+                        'filter': filter,
+                        'options[orderBy]': 'level',
+                        'options[orderDir]': options.orderBy == 'level' and options.orderDir == 'desc' ? 'asc' : 'desc'
+                    }) }}">
+                        Level
+                    </a>
+                    {% if options.orderBy == 'level' %}
+                        <span class="small glyphicon glyphicon-triangle-{{ options.orderDir == 'asc' ? 'top' : 'bottom' }}"></span>
+                    {% endif %}
+                </th>
+
+                <th>
+                    Factors
+                </th>
                 <th> </th>
             </thead>
             <tbody>
@@ -144,7 +170,7 @@
                         <td>
                             {%- for factorText in log.factorTexts -%}
                                 {{- loop.index > 1 ? ', ' : '' -}}
-                                <a href="{{ path('listLog', {'filter[factors]': factorText}) }}">
+                                <a href="{{ path('listLog', {'filter[factors]': factorText, 'options': options}) }}">
                                     {{ factorText -}}
                                 </a>
                             {%- endfor -%}
