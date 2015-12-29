@@ -182,7 +182,7 @@
                         // Change timezone and set current time.
                         m = moment().tz(tzname);
                         $('#stress_log_form_localtime_date').val(m.format("YYYY-MM-DD"));
-                        $('#stress_log_form_localtime_time_hour').val(m.format("h"));
+                        $('#stress_log_form_localtime_time_hour').val(m.format("H"));
                         $('#stress_log_form_localtime_time_minute').val(m.format("m"));
                         $('#stress_log_form_timezone').val(tz.name());
                     }
