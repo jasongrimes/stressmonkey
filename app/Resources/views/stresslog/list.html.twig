@@ -109,13 +109,14 @@
         <div class="alert alert-info">
             No log entries found.
         </div>
-
     {% else %}
-        {% if count == 1 %}
-            <strong>{{ count }}</strong> result found.
-        {% else %}
-            <strong>{{ count }}</strong> results found.
-        {% endif %}
+        <p style="padding: 0px 8px;">
+            {% if count == 1 %}
+                <strong>{{ count }}</strong> result found.
+            {% else %}
+                <strong>{{ count }}</strong> results found.
+            {% endif %}
+        </p>
 
         <table class="table">
             <thead>
