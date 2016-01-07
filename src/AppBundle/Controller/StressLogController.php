@@ -5,6 +5,7 @@ namespace AppBundle\Controller;
 use AppBundle\Form\FilterStressLogsForm;
 use AppBundle\Form\StressLogForm;
 use AppBundle\Repository\StressLogRepository;
+use AppBundle\Util\Stats;
 use AppBundle\Util\TagManager;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
@@ -111,6 +112,8 @@ class StressLogController extends Controller
 
         $logs = $repo->findFiltered($this->getUser(), $filter, $options);
         $count = $repo->countFiltered($this->getUser(), $filter);
+        $logData = $repo->findFilteredData($this->getUser(), $filter);
+        $levels = array_column($logData, 'level');
 
         return $this->render('stresslog/list.html.twig', array(
             'logs' => $logs,
@@ -119,6 +122,13 @@ class StressLogController extends Controller
             'count' => $count,
             'filter' => $filter,
             'options' => $options,
+            'stats' => array(
+                'mean' => Stats::mean($levels),
+                'median' => Stats::median($levels),
+                'range' => Stats::range($levels),
+                'variance' => Stats::variance($levels),
+                'stdev' => Stats::standardDeviation($levels),
+            ),
         ));
     }
 

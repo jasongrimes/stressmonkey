@@ -109,6 +109,7 @@
         <div class="alert alert-info">
             No log entries found.
         </div>
+
     {% else %}
         <p style="padding: 0px 8px;">
             {% if count == 1 %}
@@ -117,6 +118,7 @@
                 <strong>{{ count }}</strong> results found.
             {% endif %}
         </p>
+        {{ dump(stats) }}
 
         <table class="table">
             <thead>

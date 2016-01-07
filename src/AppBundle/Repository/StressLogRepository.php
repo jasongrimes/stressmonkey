@@ -35,9 +35,9 @@ class StressLogRepository extends EntityRepository
      */
     public function findFiltered(User $user, array $filter = array(), array $options = array())
     {
-        $orderBy = $options['orderBy'] ?: 'local_time';
+        $orderBy = isset($options['orderBy']) ? $options['orderBy'] : 'local_time';
         if ($orderBy == 'localtime') $orderBy = 'local_time';
-        $orderDir = strtolower($options['orderDir']) == 'asc' ? 'asc' : 'desc';
+        $orderDir = isset($options['orderDir']) && strtolower($options['orderDir']) == 'asc' ? 'asc' : 'desc';
 
         list($sql, $params) = $this->commonSql($user, $filter);
         $sql = 'SELECT l.id ' . $sql . ' ';
@@ -179,5 +179,23 @@ class StressLogRepository extends EntityRepository
         });
 
         return $objects;
+    }
+
+    /**
+     * Find raw log entry data made by the given user that match the given filter criteria.
+     *
+     * @param User $user
+     * @param array $filter
+     * @param array $options
+     * @return array
+     */
+    public function findFilteredData(User $user, array $filter = array(), array $options = array())
+    {
+        list($sql, $params) = $this->commonSql($user, $filter);
+        $sql = 'SELECT l.* ' . $sql . ' ';
+
+        $db = $this->getEntityManager()->getConnection();
+
+        return $db->fetchAll($sql, $params);
     }
 }
