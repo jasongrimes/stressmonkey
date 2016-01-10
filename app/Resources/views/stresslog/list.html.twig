@@ -118,7 +118,33 @@
                 <strong>{{ count }}</strong> results found.
             {% endif %}
         </p>
-        {{ dump(stats) }}
+        <ul class="list-inline">
+            <li>
+                <span class="text-muted">Mean</span>
+                <br/>
+                {{ stats.mean }}
+            </li>
+            <li>
+                <span class="text-muted">Median</span>
+                <br/>
+                {{ stats.median }}
+            </li>
+            <li>
+                <span class="text-muted">Range</span>
+                <br/>
+                {{ stats.range }}
+            </li>
+            <li>
+                <span class="text-muted">Variance</span>
+                <br/>
+                {{ stats.variance }}
+            </li>
+            <li>
+                <span class="text-muted">Stdev</span>
+                <br/>
+                {{ stats.stdev }}
+            </li>
+        </ul>
 
         <table class="table">
             <thead>
